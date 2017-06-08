@@ -60,7 +60,7 @@ for artifact in response:
             for item in items:
                 item = item.strip()
                 #the only kinds of updates we care about are..
-                itemFilters = ['SCHEDULED STATE ','STATE ','TASKS ','OWNER ','TAGS ','DEFECTS ','NOTES ']
+                itemFilters = ['SCHEDULE STATE ','STATE ','TASKS ','OWNER ','TAGS ','DEFECTS ','NOTES ']
 
                 for filterStr in itemFilters:
                   if item.startswith(filterStr):
