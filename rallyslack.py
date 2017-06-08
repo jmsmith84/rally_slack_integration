@@ -59,14 +59,16 @@ for artifact in response:
 
             for item in items:
                 item = item.strip()
-                #the only kinds of updates we care about are changes to OWNER and SCHEDULE STATE
-                #other changes, such as moving ranks around, etc, don't matter so much
-                #if item.startswith('SCHEDULE STATE ') or item.startswith("OWNER added "):
+                #the only kinds of updates we care about are..
+                itemFilters = ['FLOW STATE changed ','STATE changed ','TASKS added ','OWNER ','DESCRIPTION ','NOTES ']
 
-                #Modified to push all updates for now
-                postmessage = postmessage  + "> " + item + ' \n';
-                print postmessage
-                include = True
+                for filterStr in itemFilters:
+                  if item.startswith(filterStr):
+
+                    #Modified to push all updates for now
+                    postmessage = postmessage  + "> " + item + ' \n';
+                    print postmessage
+                    include = True
 
     if include:
         print "Attempting to send to Slack"
@@ -74,5 +76,6 @@ for artifact in response:
         slack.chat.post_message(channel=channel, text=postmessage, username=botusername, as_user=True)
 
 print "Rally Slackbot END"
+
 
 
