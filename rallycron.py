@@ -7,6 +7,16 @@ from datetime import timedelta
 from pyral import Rally
 from slacker import Slacker
 
+def parse_config(filename):
+    filetext = open(filename)
+    data = []
+    for line in filetext:
+        row = line.strip().split('=')
+        if len(row) == 2:
+            data.append(row)
+
+    return dict(data)
+
 # Get command line argument for loading config file
 if len(sys.argv) < 2:
     print "Argument needed, ie. `rallycron.py team-name`"
@@ -17,7 +27,7 @@ if not os.path.isfile(configFilename):
     print configFilename + ': file does not exist.'
     sys.exit()
 
-config = dict(line.strip().split('=') for line in open(configFilename))
+config = parse_config(configFilename)
 
 slack = Slacker(config.get('slack_api_key', ''))
 server = config.get('rally_server', 'rally1.rallydev.com')
@@ -48,8 +58,8 @@ query = 'LastUpdateDate > ' + querystartdate.isoformat()
 
 response = rally.get('Artifact', fetch=True, query=query, order='LastUpdateDate desc')
 
-print "Artifacts found: " + len(response)
 for artifact in response:
+    print "Artifact found: " + artifact.Name
     include = False
 
     #start building the message string that may or may not be sent up to slack
