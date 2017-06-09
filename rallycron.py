@@ -37,10 +37,10 @@ apikey = config.get('rally_api_key', '')
 channel = config.get('slack_channel', '#rally')
 botusername = config.get('slack_bot_username', 'rallybot')
 
-#Assume this system runs (via cron) every 15 minutes.
+#set interval to exactly the same as the cronjob itself
 interval = config.get('cron_interval_minutes', 15) * 60
 
-# Artifact item "types" to be allowed to send to Slack
+#artifact item "types" to be allowed to send to Slack
 itemFilters = config.get('rally_item_filters', '').split(',')
 
 #format of the date strings as we get them from rally
