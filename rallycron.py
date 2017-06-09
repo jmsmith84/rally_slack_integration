@@ -1,39 +1,45 @@
-#note, you'll need to be running python2 (built with 2.7, python DOES NOT WORK )
-#you'll need to pip install pyral (the python-rally connector) as slacker (the slack connector)
-
+#need to be running python2 (built with 2.7, python DOES NOT WORK )
+#pip install pyral (the python-rally connector) as slacker (the slack connector)
+import sys
+import os.path
 from datetime import datetime
 from datetime import timedelta
 from pyral import Rally
 from slacker import Slacker
 
-print "Rally Slackbot INIT"
+# Get command line argument for loading config file
+if len(sys.argv) < 2:
+    print "Argument needed, ie. `rallycron.py team-name`"
+    sys.exit()
 
-slack = Slacker('your slack key')
-server = "rally1.rallydev.com"
+configFilename = sys.argv[1] + '.config'
+if not os.path.isfile(configFilename):
+    print configFilename + ': file does not exist.'
+    sys.exit()
 
-#as we are using an API key, we can leave out the username and password
-user = ""
-password = ""
+config = dict(line.strip().split('=') for line in open(configFilename))
 
-workspace = "Your Workspace"
-project = "Your Project"
-apikey = "Your API Key"
-
-#which slack channel does this post to?
-channel = "#your_channel"
-
-#user that has access to the slack channel and will be posting the messages
-botusername = "rallybot"
+slack = Slacker(config.get('slack_api_key', ''))
+server = config.get('rally_server', 'rally1.rallydev.com')
+workspace = config.get('rally_workspace', '')
+project = config.get('rally_project', '')
+apikey = config.get('rally_api_key', '')
+channel = config.get('slack_channel', '#rally')
+botusername = config.get('slack_bot_username', 'rallybot')
 
 #Assume this system runs (via cron) every 15 minutes.
-interval = 15 * 60
+interval = config.get('cron_interval_minutes', 15) * 60
+
+# Artifact item "types" to be allowed to send to Slack
+itemFilters = config.get('rally_item_filters', '').split(',')
 
 #format of the date strings as we get them from rally
 format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
-#create the rally service wrapper
-rally = Rally(server, user, password, apikey=apikey, workspace=workspace, project=project)
+print "Rally Slackbot BEGIN"
 
+#create the rally service wrapper (as we are using an API key, we can leave out the username and password)
+rally = Rally(server, '', '', apikey=apikey, workspace=workspace, project=project)
 
 #build the query to get only the artifacts (user stories and defects) updated in the last day
 querydelta = timedelta(days=-1)
@@ -42,6 +48,7 @@ query = 'LastUpdateDate > ' + querystartdate.isoformat()
 
 response = rally.get('Artifact', fetch=True, query=query, order='LastUpdateDate desc')
 
+print "Artifacts found: " + len(response)
 for artifact in response:
     include = False
 
@@ -59,16 +66,16 @@ for artifact in response:
 
             for item in items:
                 item = item.strip()
-                #the only kinds of updates we care about are..
-                itemFilters = ['SCHEDULE STATE ','STATE ','TASKS ','OWNER ','TAGS ','DEFECTS ','NOTES ']
-
+                #filter down to only updates we care about
                 for filterStr in itemFilters:
-                  if item.startswith(filterStr):
+                  if item.startswith(filterStr + ' '):
 
-                    #Modified to push all updates for now
+                    #modified to push all updates for now
                     postmessage = postmessage  + "> " + item + ' \n';
                     print postmessage
                     include = True
+                    break
+
 
     if include:
         print "Attempting to send to Slack"
@@ -76,6 +83,3 @@ for artifact in response:
         slack.chat.post_message(channel=channel, text=postmessage, username=botusername, as_user=True)
 
 print "Rally Slackbot END"
-
-
-
