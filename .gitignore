@@ -1,0 +1,8 @@
+.rallyhook*
+*.pem
+venv/
+*.pyc
+.log/
+.pid
+*.http
+
