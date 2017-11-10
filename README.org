@@ -1,8 +1,8 @@
 * Rallycron
 ** Cronjob for Rally -> Slack notifications
    - Put your specific credentials and options into a separate config file
-   - Usage (where config is named 'mystuff.config'): python rallycron.py mystuff
-   - Whatever cron time interval you use needs to be exactly the same as cron_interval_minutes in config
+   - Usage (where your config is named 'mystuff.cfg'): rallycron.py mystuff
+   - Whatever cron time interval you use needs to be exactly the same as cron_interval_minutes in config (*/15 in crontab, cron_interval_minutes=15)
 
 * Rallyhook
 ** A webhook listener for Rally -> Slack notifications
